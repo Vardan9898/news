@@ -1,6 +1,9 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import { Table } from "../components/table";
-import { Button } from "@mantine/core";
+import { Box, Button, Modal } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import { CreateArticleForm } from "../components/create-article-form";
+import { mockService } from "../mock-service";
 
 const COLUMNS = [
   { name: "title", render: () => "Title" },
@@ -9,114 +12,66 @@ const COLUMNS = [
   { name: "delete", render: () => "Delete" },
 ];
 
-const DATA = [
-  {
-    title: { name: "Lorem Ipsum", render: () => "Lorem Ipsum" },
-    description: {
-      name: "description",
-      render: () =>
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
-    },
-    text: {
-      name: "text",
-      render: () =>
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.",
-    },
-    delete: {
-      name: "delete",
-      render: () => (
-        <Button variant="outline" color="red">
-          Delete
-        </Button>
-      ),
-    },
-  },
-  {
-    title: { name: "Lorem Ipsum", render: () => "Lorem Ipsum" },
-    description: {
-      name: "description",
-      render: () =>
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
-    },
-    text: {
-      name: "text",
-      render: () =>
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.",
-    },
-    delete: {
-      name: "delete",
-      render: () => (
-        <Button variant="outline" color="red">
-          Delete
-        </Button>
-      ),
-    },
-  },
-  {
-    title: { name: "Lorem Ipsum", render: () => "Lorem Ipsum" },
-    description: {
-      name: "description",
-      render: () =>
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
-    },
-    text: {
-      name: "text",
-      render: () =>
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.",
-    },
-    delete: {
-      name: "delete",
-      render: () => (
-        <Button variant="outline" color="red">
-          Delete
-        </Button>
-      ),
-    },
-  },
-  {
-    title: { name: "Lorem Ipsum", render: () => "Lorem Ipsum" },
-    description: {
-      name: "description",
-      render: () =>
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
-    },
-    text: {
-      name: "text",
-      render: () =>
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.",
-    },
-    delete: {
-      name: "delete",
-      render: () => (
-        <Button variant="outline" color="red">
-          Delete
-        </Button>
-      ),
-    },
-  },
-  {
-    title: { name: "Lorem Ipsum", render: () => "Lorem Ipsum" },
-    description: {
-      name: "description",
-      render: () =>
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
-    },
-    text: {
-      name: "text",
-      render: () =>
-        "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.",
-    },
-    delete: {
-      name: "delete",
-      render: () => (
-        <Button variant="outline" color="red">
-          Delete
-        </Button>
-      ),
-    },
-  },
-];
-
 export const HomeTemplate: FC = () => {
-  return <Table data={DATA} columns={COLUMNS} />;
+  const [opened, { open, close }] = useDisclosure();
+  const [data, setData] = useState<
+    {
+      id: string;
+      title: string;
+      description: string;
+      text: string;
+    }[]
+  >(mockService.getData());
+
+  const handleOnDelete = (id: string) => {
+    mockService.deleteItem(id);
+    setData(mockService.getData());
+  };
+
+  const handleOnCreate = (data: {
+    id: string;
+    title: string;
+    description: string;
+    text: string;
+  }) => {
+    mockService.addNewArticle(data);
+    setData(mockService.getData());
+    close();
+  };
+
+  const tableData = data.map((article) => ({
+    title: { name: article.title, render: () => article.title },
+    description: {
+      name: article.description,
+      render: () => article.description,
+    },
+    text: {
+      name: article.text,
+      render: () => article.text,
+    },
+    delete: {
+      name: "delete",
+      render: () => (
+        <Button
+          variant="outline"
+          color="red"
+          onClick={() => handleOnDelete(article.id)}
+        >
+          Delete
+        </Button>
+      ),
+    },
+  }));
+
+  return (
+    <Box p="lg">
+      <Box pb="lg">
+        <Button onClick={open}>Create</Button>
+      </Box>
+      <Table data={tableData} columns={COLUMNS} />
+      <Modal opened={opened} onClose={close} centered title="New Article">
+        <CreateArticleForm onSuccessSubmit={handleOnCreate} />
+      </Modal>
+    </Box>
+  );
 };
